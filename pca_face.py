@@ -8,8 +8,12 @@ import pandas as pd
 import numpy as np
 
 
+kernels = ['rbf', 'linear', 'poly', 'sigmoid']
+curr_kern = 0
+
+
 def classify_data(train_data, test_data, train_label, test_label):
-    clf = svm.SVC(gamma=0.001, kernel='linear')
+    clf = svm.SVC(gamma=0.001, kernel=kernels[curr_kern])
     clf.fit(train_data, train_label)
     pred = clf.predict(test_data)
     return accuracy_score(test_label, pred, normalize=True), \
@@ -17,10 +21,11 @@ def classify_data(train_data, test_data, train_label, test_label):
 
 
 def decompose_data(train_data, test_data):
-    pca_decomposer = PCA(.95)
+    pca_decomposer = PCA(290)
     pca_decomposer.fit(train_data)
     return pca_decomposer.transform(train_data), \
-        pca_decomposer.transform(test_data)
+        pca_decomposer.transform(test_data), \
+        pca_decomposer.explained_variance_ratio_.cumsum()
 
 
 def scale_data(train_data, test_data):
@@ -38,8 +43,13 @@ def load_data():
 if __name__ == "__main__":
     train_data, test_data, train_target, test_target = load_data()
     train_data, test_data = scale_data(train_data, test_data)
-    train_data, test_data = decompose_data(train_data, test_data)
-    acc_res, pres_res, f1_res = classify_data(train_data, test_data,
+    train_data, test_data, var_cumsum = decompose_data(train_data, test_data)
+    print("Cumulative variance: ", var_cumsum[-10:])
+
+    acc_res, prec_res, f1_res = classify_data(train_data, test_data,
                                               train_target, test_target)
-    print("Accuracy: {0:.0%} \nPrecision: {1:.0%} \nF1-score: {2:.0%}".format(
-        acc_res, pres_res, f1_res))
+
+    print("SVM using {} kernel".format(kernels[curr_kern]))
+    print("Accuracy: {:.0%}".format(acc_res))
+    print("Precision: {:.0%}".format(prec_res))
+    print("F1 Score: {:.0%}".format(f1_res))
