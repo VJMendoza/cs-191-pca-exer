@@ -1,1 +1,1 @@
-# cs-191-pca-exer
+# cs-191-pca-exer-faces
